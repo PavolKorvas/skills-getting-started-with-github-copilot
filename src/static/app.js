@@ -85,9 +85,21 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Search input event
+  // Debounce utility
+  function debounce(func, wait) {
+    let timeout;
+    return function(...args) {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+  }
+
   if (searchInput) {
+    const debouncedRender = debounce((value) => {
+      renderActivities(value);
+    }, 300);
     searchInput.addEventListener("input", (e) => {
-      renderActivities(e.target.value);
+      debouncedRender(e.target.value);
     });
   }
 
