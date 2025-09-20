@@ -97,7 +97,7 @@ section h3 {
 }
 
 .participants-list .no-participants {
-  color: #888;
+  color: #444;
   font-style: italic;
   list-style-type: none;
 }
