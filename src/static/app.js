@@ -3,33 +3,76 @@ document.addEventListener("DOMContentLoaded", () => {
   const activitySelect = document.getElementById("activity");
   const signupForm = document.getElementById("signup-form");
   const messageDiv = document.getElementById("message");
+  const searchInput = document.getElementById("activity-search");
+
+  let allActivities = {};
+
+  // Render activities with optional filter
+  function renderActivities(filter = "") {
+    activitiesList.innerHTML = "";
+    let filtered = Object.entries(allActivities);
+    if (filter.length >= 3) {
+      const lower = filter.toLowerCase();
+      filtered = filtered.filter(([name, details]) =>
+        name.toLowerCase().includes(lower) ||
+        details.description.toLowerCase().includes(lower)
+      );
+      if (filtered.length === 0) {
+        activitiesList.innerHTML = '<p class="no-results">No activities found.</p>';
+        return;
+      }
+    }
+    filtered.forEach(([name, details]) => {
+      const activityCard = document.createElement("div");
+      activityCard.className = "activity-card";
+
+      const spotsLeft = details.max_participants - details.participants.length;
+
+      // Create participants section safely
+      const participantsSection = document.createElement("div");
+      participantsSection.className = "participants-section";
+
+      const participantsTitle = document.createElement("h5");
+      participantsTitle.textContent = "Participants:";
+      participantsSection.appendChild(participantsTitle);
+
+      const participantsList = document.createElement("ul");
+      participantsList.className = "participants-list";
+      if (details.participants.length > 0) {
+        details.participants.forEach(email => {
+          const li = document.createElement("li");
+          li.textContent = email;
+          participantsList.appendChild(li);
+        });
+      } else {
+        const li = document.createElement("li");
+        li.className = "no-participants";
+        li.textContent = "No participants yet";
+        participantsList.appendChild(li);
+      }
+      participantsSection.appendChild(participantsList);
+
+      activityCard.innerHTML = `
+        <h4>${name}</h4>
+        <p>${details.description}</p>
+        <p><strong>Schedule:</strong> ${details.schedule}</p>
+        <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
+      `;
+      activityCard.appendChild(participantsSection);
+
+      activitiesList.appendChild(activityCard);
+    });
+  }
 
   // Function to fetch activities from API
   async function fetchActivities() {
     try {
       const response = await fetch("/activities");
-      const activities = await response.json();
-
-      // Clear loading message
-      activitiesList.innerHTML = "";
-
-      // Populate activities list
-      Object.entries(activities).forEach(([name, details]) => {
-        const activityCard = document.createElement("div");
-        activityCard.className = "activity-card";
-
-        const spotsLeft = details.max_participants - details.participants.length;
-
-        activityCard.innerHTML = `
-          <h4>${name}</h4>
-          <p>${details.description}</p>
-          <p><strong>Schedule:</strong> ${details.schedule}</p>
-          <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
-        `;
-
-        activitiesList.appendChild(activityCard);
-
-        // Add option to select dropdown
+      allActivities = await response.json();
+      renderActivities();
+      // Populate select dropdown
+      activitySelect.innerHTML = '<option value="">-- Select an activity --</option>';
+      Object.keys(allActivities).forEach(name => {
         const option = document.createElement("option");
         option.value = name;
         option.textContent = name;
@@ -39,6 +82,25 @@ document.addEventListener("DOMContentLoaded", () => {
       activitiesList.innerHTML = "<p>Failed to load activities. Please try again later.</p>";
       console.error("Error fetching activities:", error);
     }
+  }
+
+  // Search input event
+  // Debounce utility
+  function debounce(func, wait) {
+    let timeout;
+    return function(...args) {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+  }
+
+  if (searchInput) {
+    const debouncedRender = debounce((value) => {
+      renderActivities(value);
+    }, 300);
+    searchInput.addEventListener("input", (e) => {
+      debouncedRender(e.target.value);
+    });
   }
 
   // Handle form submission
