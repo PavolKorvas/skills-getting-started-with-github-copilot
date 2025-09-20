@@ -50,11 +50,44 @@ section {
   max-width: 500px;
 }
 
-section h3 {
+
+.activities-header {
+  display: flex;
+  align-items: center;
+  gap: 18px;
   margin-bottom: 20px;
   padding-bottom: 10px;
   border-bottom: 1px solid #ddd;
+}
+
+.activities-header h3 {
   color: #1a237e;
+  margin: 0;
+}
+
+#activity-search {
+  flex: 1;
+  max-width: 260px;
+  padding: 8px 12px;
+  border: 1px solid #bbb;
+  border-radius: 4px;
+  font-size: 15px;
+  background: #f7faff;
+  color: #222;
+  transition: border-color 0.2s;
+}
+
+#activity-search:focus {
+  outline: none;
+  border-color: #1a237e;
+  background: #fff;
+}
+
+.no-results {
+  color: #c62828;
+  font-style: italic;
+  margin: 18px 0 0 0;
+  text-align: center;
 }
 
 .activity-card {
